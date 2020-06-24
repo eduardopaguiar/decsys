@@ -1,4 +1,4 @@
-import React, { memo, forwardRef } from "react";
+import React, { memo, useRef, useEffect } from "react";
 import { Droppable } from "react-beautiful-dnd";
 import { useSurvey } from "app/contexts/Survey";
 import DraggablePage, { Page } from "./DraggablePage";
@@ -13,7 +13,7 @@ const basePageHeight = 80;
 const pageItemHeight = 32;
 
 /** calculate the height of a page based on the known height per page item, and the rest of the page */
-const getPageHeight = (counts) => (i) =>
+const getPageHeight = counts => i =>
   basePageHeight + pageItemHeight * counts[i];
 
 /** split the heights of all pages evenly, so the whole list is the correct height */
@@ -37,9 +37,17 @@ const Row = memo(({ data, index: i, style }, ref) => {
 
 const DroppablePageList = () => {
   const { pages, id: surveyId } = useSurvey();
-  const { mutate } = usePageListContext();
+  const { mutate, setResetAfterIndex } = usePageListContext();
 
-  const pageItemCounts = pages.map((p) => p.components.length);
+  const virtualListRef = useRef({ resetAfterIndex: () => {} });
+
+  useEffect(() => {
+    setResetAfterIndex(() => (...args) =>
+      virtualListRef.current.resetAfterIndex(...args)
+    );
+  }, [setResetAfterIndex]);
+
+  const pageItemCounts = pages.map(p => p.components.length);
 
   return (
     <Box height="100%">
@@ -60,6 +68,7 @@ const DroppablePageList = () => {
           >
             {({ innerRef }) => (
               <VariableSizeList
+                ref={virtualListRef}
                 height={height}
                 width={width}
                 itemKey={(i, { pages }) => pages[i].id}

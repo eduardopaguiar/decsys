@@ -16,17 +16,24 @@ const Editor = ({ id, navigate }) => {
   const [nameState, setNameState] = useState({});
   const [busy, setBusy] = useState({});
 
+  const [resetAfterIndex, setResetAfterIndex] = useState(() => () => {});
+
   const EditorBarActions = useMemo(
     () => editorBarActions(id, navigate, mutate, setNameState),
     [id, navigate, mutate, setNameState]
   );
   const editorBarContext = { ...EditorBarActions, nameState };
 
-  const PageListActions = useMemo(() => pageListActions(id, mutate), [
-    id,
-    mutate
-  ]);
-  const pageListContext = { ...PageListActions, busy, setBusy };
+  const PageListActions = useMemo(
+    () => pageListActions(id, mutate, setBusy, resetAfterIndex),
+    [id, mutate, setBusy, resetAfterIndex]
+  );
+  const pageListContext = {
+    ...PageListActions,
+    busy,
+    setBusy,
+    setResetAfterIndex
+  };
 
   return (
     <Page layout={null}>

@@ -2,8 +2,8 @@ import { createContext, useContext } from "react";
 
 const PageListContext = createContext({
   addPage: () => {},
-  deletePage: (pageId) => {},
-  duplicatePage: (pageId) => {},
+  deletePage: pageId => {},
+  duplicatePage: pageId => {},
   setPageRandomize: (pageId, randomize) => {},
   movePage: (pageId, source, destination) => {},
   addItemToPage: (pageId, type) => {},
@@ -12,8 +12,10 @@ const PageListContext = createContext({
   busy: {
     isPageDragging: false,
     isPageItemDragging: false,
+    isListReordering: false
   },
-  setBusy: ({ isPageDragging, isPageItemDragging }) => {}
+  setBusy: ({ isPageDragging, isPageItemDragging, isListReordering }) => {},
+  setResetAfterIndex: () => {}
 });
 
 export const usePageListContext = () => useContext(PageListContext);

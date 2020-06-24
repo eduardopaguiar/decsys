@@ -8,6 +8,10 @@ import { usePageListContext } from "../../contexts/PageList";
 const PageList = () => {
   const { movePage, setBusy } = usePageListContext();
 
+  const handleBeforeCapture = c => {
+    console.log(c);
+  };
+
   const handleBeforeDragStart = ({ type }) => {
     if (type === "PAGE") setBusy({ isPageDragging: true });
     if (type.split(":")[0] === "PAGE_ITEM")
@@ -19,21 +23,25 @@ const PageList = () => {
     if (!destination) return;
     if (source.droppableId !== destination.droppableId) return;
     if (destination.index === source.index) return;
-    if (destination.droppableId === "page-list")
-      movePage(draggableId, source.index + 1, destination.index + 1);
+    if (destination.droppableId === "page-list") {
+      movePage(draggableId, source.index, destination.index);
+    }
   };
 
   return (
-    <Flex direction="column" width="100%">
-      <Header />
+    <>
+      <Flex direction="column" width="100%">
+        <Header />
 
-      <DragDropContext
-        onBeforeDragStart={handleBeforeDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <DroppablePageList />
-      </DragDropContext>
-    </Flex>
+        <DragDropContext
+          onBeforeCapture={handleBeforeCapture}
+          onBeforeDragStart={handleBeforeDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <DroppablePageList />
+        </DragDropContext>
+      </Flex>
+    </>
   );
 };
 
