@@ -15,7 +15,7 @@ const ParamsEditor = ({ component, params, handleParamChange }) => {
       </Text>,
       <Param
         key={`${key}-value`}
-        value={params[key] || p.defaultValue}
+        value={params?.[key] || p.defaultValue}
         type={p.type}
         paramKey={key}
         oneOf={p.oneOf}

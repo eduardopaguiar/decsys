@@ -17,30 +17,32 @@ const progressData = [
 export default {
   title: "Core UI/ProgressCard",
   component: ProgressCard,
+  args: {
+    title: "Question 1",
+    total: 10,
+  },
 };
 
-export const Basic = () => <ProgressCard title="Question 1" total={10} />;
+const Template = (args) => <ProgressCard {...args} />;
 
-export const WithHeader = () => (
-  <ProgressCard title="Question 1" progressHeader="Participants" total={50} />
-);
+export const Basic = Template.bind({});
 
-export const WithData = () => (
-  <ProgressCard
-    title="Question 1"
-    progressHeader="Participants"
-    progressData={progressData.map(({ complete }) => ({
-      complete,
-    }))}
-    total={10}
-  />
-);
+export const WithHeader = Template.bind({});
+WithHeader.args = {
+  progressHeader: "Participants",
+};
 
-export const WithLabelledData = () => (
-  <ProgressCard
-    title="Question 1"
-    progressHeader="Participants"
-    progressData={progressData}
-    total={20}
-  />
-);
+export const WithData = Template.bind({});
+WithData.args = {
+  ...WithHeader.args,
+  progressData: progressData.map(({ complete }) => ({
+    complete,
+  })),
+};
+
+export const WithLabelledData = Template.bind({});
+WithLabelledData.args = {
+  ...WithHeader.args,
+  progressData,
+  total: 20,
+};
