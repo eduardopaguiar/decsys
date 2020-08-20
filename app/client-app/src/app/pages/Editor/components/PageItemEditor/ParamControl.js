@@ -13,7 +13,7 @@ import {
   Radio,
 } from "@chakra-ui/core";
 
-const useDelayedChangeHandler = (paramKey, init, onChange) => {
+const useDelayedChangeHandler = (paramPath, init, onChange) => {
   const [timer, setTimer] = useState();
 
   const [value, setValue] = useState(init); // we use local state so updates work without delay
@@ -40,15 +40,15 @@ const useDelayedChangeHandler = (paramKey, init, onChange) => {
 
     //delay, then fire the onChange passed in to update remote state
     clearTimeout(timer); // reset the delay timer every change
-    setTimer(setTimeout(() => onChange(paramKey, inputValue), 500));
+    setTimer(setTimeout(() => onChange(paramPath, inputValue), 500));
   };
 
   return [value, delayedHandleValueChange];
 };
 
-const StringControl = ({ paramKey, value, onChange }) => {
+const StringControl = ({ paramType, value, onChange }) => {
   const [text, delayedHandleChange] = useDelayedChangeHandler(
-    paramKey,
+    paramType.path,
     value,
     onChange
   );
@@ -67,7 +67,7 @@ const StringControl = ({ paramKey, value, onChange }) => {
 const BoolControl = ({ paramKey, value, paramType, onChange }) => {
   const handleCheckedChange = (e) => {
     e.persist();
-    onChange(paramKey, e.target.checked);
+    onChange(paramType.path, e.target.checked);
   };
 
   return (
@@ -87,7 +87,7 @@ const OneOfControl = ({ paramKey, value, paramType, onChange }) => {
   useEffect(() => setLocalValue(value), [value]); // but still ensure update when new props come in
 
   const handleValueChange = (v) => {
-    onChange(paramKey, v);
+    onChange(paramType.path, v);
     setLocalValue(v);
   };
 
@@ -109,9 +109,9 @@ const OneOfControl = ({ paramKey, value, paramType, onChange }) => {
   );
 };
 
-const NumberControl = ({ paramKey, value, paramType, onChange }) => {
+const NumberControl = ({ value, paramType, onChange }) => {
   const [text, delayedHandleChange] = useDelayedChangeHandler(
-    paramKey,
+    paramType.path,
     value,
     onChange
   );

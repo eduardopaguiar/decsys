@@ -33,17 +33,44 @@ const convertArrayShorthands = (arr) => {
 const convertStringShorthands = (type) =>
   typeof type !== "string" ? type : convertArrayShorthands([type]);
 
+// TODO: move to data-structures service
+const getNestedChild = (source, path) => {
+  if (source == null) return null;
+  if (!Array.isArray(source) || typeof source !== "object")
+    // TODO: functions should work too
+    throw new Error(
+      `Can only access children of arrays or objects. Provided source was ${typeof source}`
+    );
+
+  // parse the path
+  const segments = path.split(".");
+
+  // drill down to the child
+  let result = source;
+  for (const key in segments) {
+    const intKey = parseInt(key);
+    result = result[!isNaN(intKey) ? intKey : key];
+  }
+
+  return result;
+};
+
+const convertShorthands = (paramType) => {
+  paramType = convertStringShorthands(paramType);
+  paramType = convertArrayShorthands(paramType);
+  if (!paramType.type) {
+    paramType = { type: "group", paramTypes: paramType };
+  }
+  return paramType;
+};
+
 const buildControls = (_context, paramTypes, root = false) =>
   Object.keys(paramTypes).reduce(
     (result, key) => {
       let pt = paramTypes[key];
 
       if (!pt) return result;
-
-      // we do some non destructive shorthand conversion attempts
-      pt = convertStringShorthands(pt);
-      pt = convertArrayShorthands(pt);
-
+      pt = convertShorthands(pt);
       // if we're here, pt is a full ParamTypes object, or invalid ¯\_(ツ)_/¯
 
       if (pt.type === "section") {
@@ -61,10 +88,33 @@ const buildControls = (_context, paramTypes, root = false) =>
         };
       }
 
+      // ensure pt has a path before further action
+      pt.path = pt.path || key;
+
       let controls;
-      if (pt.type === "group" || !pt.type) {
+      if (pt.type === "group") {
         // TODO: reference types enum
-        if (!pt.type) pt = { paramTypes: pt };
+
+        // nested paths where not specified
+        if (!pt.flatPaths) {
+          pt.paramTypes = Object.keys(pt.paramTypes).reduce(
+            (paramTypes, innerKey) => {
+              let paramType = pt.paramTypes[innerKey];
+              // need to convert shorthands upfront
+              // so we can add path properties
+              paramType = convertShorthands(paramType);
+              return {
+                ...paramTypes,
+                [innerKey]: {
+                  ...paramType,
+                  path: paramType.path || `${pt.path}.${innerKey}`,
+                },
+              };
+            },
+            {}
+          );
+        }
+
         controls = (
           <Stack p={2} pt={0} bg="blackAlpha.200" borderRadius={10}>
             <Text p={1} fontWeight="medium" borderBottom="thin solid">
@@ -79,7 +129,7 @@ const buildControls = (_context, paramTypes, root = false) =>
             key={key}
             paramKey={key}
             paramType={pt}
-            value={_context.params?.[key] ?? pt.defaultValue}
+            value={getNestedChild(_context.params, pt.path) ?? pt.defaultValue}
             handleParamChange={_context.handleParamChange}
           />
         );
@@ -98,7 +148,6 @@ const ParamControlRow = ({ value, paramType, paramKey, handleParamChange }) => {
   return (
     <ControlsGrid>
       <FormLabel
-        id={`${paramKey}-label`}
         textAlign="right"
         fontWeight="medium"
         color={isLabelledType ? "inherit" : "gray.400"}

@@ -158,18 +158,28 @@ Groups.args = {
       param1: "string",
       group1: {
         type: "group",
-        label: "Fully Specified Group",
+        label: "Group with Flat Paths",
+        flatPaths: true,
         paramTypes: {
           groupParam1: "string",
           groupParam2: "bool",
         },
       },
       shorthandGroup: {
-        groupParam1: "number",
+        groupParam1: {
+          type: "number",
+          label: "Overridden Path",
+          path: "overridden.path",
+        },
         subGroup: {
           type: "group",
           paramTypes: {
-            subParam1: ["oneOf", null, "Bread", ["Bread", "Water"]],
+            subParam1: [
+              "oneOf",
+              "Default Nested Path",
+              "Bread",
+              ["Bread", "Water"],
+            ],
           },
         },
       },
