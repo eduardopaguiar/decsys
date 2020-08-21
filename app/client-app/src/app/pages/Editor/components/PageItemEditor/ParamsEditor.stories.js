@@ -3,30 +3,9 @@ import ParamsEditor from "./ParamsEditor";
 
 const Component = ({ text }) => <div>{text}</div>;
 Component.paramTypes = {
-  withTooltip: {
-    type: "string",
-    info: "Some kind of text parameter",
-  },
-  groupTooltips: {
-    type: "group",
-    info: "The group",
-    paramTypes: {
-      child: {
-        type: "string",
-        info: "the child",
-      },
-      noTooltip: {
-        type: "string",
-      },
-    },
-  },
-  arrayTooltips: {
+  colors: {
     type: "array",
-    info: "the array",
-    childType: {
-      type: "string",
-      info: "a child",
-    },
+    childType: "color",
   },
 };
 
@@ -257,6 +236,40 @@ Arrays.args = {
               childType: "string",
             },
           },
+        },
+      },
+    },
+  },
+};
+
+export const WithInfo = Template.bind({});
+WithInfo.args = {
+  component: {
+    ...Component.bind({}),
+    paramTypes: {
+      withTooltip: {
+        type: "string",
+        info: "Some kind of text parameter",
+      },
+      groupTooltips: {
+        type: "group",
+        info: "The group",
+        paramTypes: {
+          child: {
+            type: "string",
+            info: "the child",
+          },
+          noTooltip: {
+            type: "string",
+          },
+        },
+      },
+      arrayTooltips: {
+        type: "array",
+        info: "the array",
+        childType: {
+          type: "string",
+          info: "a child",
         },
       },
     },

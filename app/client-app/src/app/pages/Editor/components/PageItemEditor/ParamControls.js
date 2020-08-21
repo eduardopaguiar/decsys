@@ -25,12 +25,21 @@ import {
   IconButton,
   Tooltip,
   Icon,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverBody,
 } from "@chakra-ui/core";
 import { FaPlusCircle, FaTimes, FaRegQuestionCircle } from "react-icons/fa";
+import { CgColorPicker } from "react-icons/cg";
 import { convertShorthands } from "services/param-types";
 import { buildControls, useDeferredChangeHandler } from "./helpers";
 import { setNestedChild } from "services/data-structures";
 import { useDerivedState } from "hooks/useDerivedState";
+import { SketchPicker } from "react-color";
+import { useDeferredAction } from "hooks/useDeferredAction";
 
 const StringControl = ({ paramType, value = "", onChange }) => {
   const [text, deferredHandleChange] = useDeferredChangeHandler(
@@ -221,6 +230,58 @@ const ArrayControl = ({ value = [], paramType, onChange }) => {
   );
 };
 
+const ColorControl = ({ paramType, value = "", onChange }) => {
+  const [color, setColor] = useDerivedState(value);
+
+  const deferredHandleChange = useDeferredAction(onChange, 500);
+
+  const handlePickerChange = (color) => {
+    setColor(color.hex);
+  };
+
+  const handleColorChange = (color) => {
+    setColor(color.hex);
+    deferredHandleChange(paramType.path, color.hex);
+  };
+
+  const handleTextChange = (e) => {
+    e.persist(); // TODO: React 17 change
+    handleColorChange({ hex: e.target.value });
+  };
+
+  return (
+    <Stack direction="row">
+      <Flex w="30px" css={{ background: color }}></Flex>
+      <Input
+        w="100px"
+        borderColor="gray.400"
+        size="sm"
+        type="text"
+        onChange={handleTextChange}
+        value={color}
+      />
+      <Popover>
+        <PopoverTrigger>
+          <IconButton size="sm" icon={<CgColorPicker />} />
+        </PopoverTrigger>
+        <PopoverContent>
+          <PopoverArrow />
+          <PopoverCloseButton />
+          <PopoverBody>
+            <SketchPicker
+              color={color}
+              onChange={handlePickerChange}
+              onChangeComplete={handleColorChange}
+              disableAlpha
+              presetColors={[]}
+            />
+          </PopoverBody>
+        </PopoverContent>
+      </Popover>
+    </Stack>
+  );
+};
+
 const ParamControl = (p) => {
   const {
     paramType: { type },
@@ -232,6 +293,7 @@ const ParamControl = (p) => {
     [types.bool]: BoolControl,
     [types.oneOf]: OneOfControl,
     array: ArrayControl, // TODO: use types enum
+    color: ColorControl,
   };
 
   if (!Object.keys(controlMap).includes(type))
