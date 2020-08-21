@@ -5,9 +5,22 @@
 export const convertArrayShorthands = (arr) => {
   if (!Array.isArray(arr)) return arr;
 
-  let [type, label, defaultValue, oneOf] = arr;
+  let [type, label, defaultValue, options] = arr;
+  let childType, oneOf;
 
   // special cases
+  if (type === "array") {
+    childType = defaultValue;
+    defaultValue = undefined;
+  }
+
+  if (type === "oneOf") {
+    if (Array.isArray(options)) {
+      oneOf = options;
+      options = {};
+    }
+  }
+
   // TODO: this is broken, what is its use case?
   // broken by setting defaults below after turning it into string
   // but i'd like to remove it if it's not needed
@@ -17,7 +30,9 @@ export const convertArrayShorthands = (arr) => {
     type,
     label,
     defaultValue,
+    childType,
     oneOf,
+    ...options,
   };
 };
 

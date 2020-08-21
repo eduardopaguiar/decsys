@@ -35,26 +35,30 @@ import {
 import { FaPlusCircle, FaTimes, FaRegQuestionCircle } from "react-icons/fa";
 import { CgColorPicker } from "react-icons/cg";
 import { convertShorthands } from "services/param-types";
-import { buildControls, useDeferredChangeHandler } from "./helpers";
+import { buildControls } from "./helpers";
 import { setNestedChild } from "services/data-structures";
 import { useDerivedState } from "hooks/useDerivedState";
 import { SketchPicker } from "react-color";
 import { useDeferredAction } from "hooks/useDeferredAction";
 
 const StringControl = ({ paramType, value = "", onChange }) => {
-  const [text, deferredHandleChange] = useDeferredChangeHandler(
-    paramType.path,
-    value,
-    onChange
-  );
+  const [text, setText] = useDerivedState(value);
+  const deferHandleChange = useDeferredAction(onChange, 500);
+
+  const handleChange = (e) => {
+    e.persist(); // TODO: React 17
+    setText(e.target.value);
+    deferHandleChange(paramType.path, e.target.value);
+  };
 
   return (
     <Input
       borderColor="gray.400"
       size="sm"
       type="text"
-      onChange={deferredHandleChange}
+      onChange={handleChange}
       value={text}
+      maxLength={paramType.limit}
     />
   );
 };
@@ -110,21 +114,33 @@ const OneOfControl = ({ paramKey, value, paramType, onChange }) => {
 };
 
 const NumberControl = ({ value = 0, paramType, onChange }) => {
-  const [text, deferredHandleChange] = useDeferredChangeHandler(
-    paramType.path,
-    value,
-    onChange
-  );
+  const [number, setNumber] = useDerivedState(value);
+  const deferHandleChange = useDeferredAction((path, value) => {
+    // clamp
+    if (paramType.min != null && value < paramType.min) value = paramType.min;
+    if (paramType.max != null && value > paramType.max) value = paramType.max;
+    setNumber(value);
+
+    onChange(path, value);
+  }, 500);
+
+  const handleChange = (number) => {
+    setNumber(number);
+    deferHandleChange(paramType.path, number);
+  };
 
   return (
     <NumberInput
       size="sm"
       step={1}
-      value={text}
-      onChange={deferredHandleChange}
+      value={number}
+      onChange={handleChange}
       // blurring when deleting a focused field is problematic.
       // so instead we manually clamp in our change handler, above.
       clampValueOnBlur={false}
+      min={paramType.min}
+      max={paramType.max}
+      maxW="150px"
     >
       <NumberInputField borderColor="gray.400" />
       <NumberInputStepper borderColor="gray.400">
@@ -170,6 +186,11 @@ const ArrayControl = ({ value = [], paramType, onChange }) => {
   }, [items, onChange, paramType, childType, setItems]);
 
   const handleAddItem = () => {
+    if (paramType.limit && paramType.limit <= items.length) {
+      console.error(`Array items limit reached: ${paramType.limit}`);
+      return;
+    }
+
     const defaultValue = (() => {
       switch (childType.type) {
         case "group":
@@ -200,7 +221,7 @@ const ArrayControl = ({ value = [], paramType, onChange }) => {
 
   return (
     <>
-      <Flex>
+      <Stack direction="row">
         <Button
           size="sm"
           colorScheme="green"
@@ -208,10 +229,16 @@ const ArrayControl = ({ value = [], paramType, onChange }) => {
           onClick={handleAddItem}
           leftIcon={<FaPlusCircle />}
           lineHeight={0}
+          disabled={paramType.limit <= items.length}
         >
           Add item
         </Button>
-      </Flex>
+        {paramType.limit && (
+          <Flex align="center">
+            ({items.length} of {paramType.limit})
+          </Flex>
+        )}
+      </Stack>
       {items.map((_, i) => (
         <Fragment key={i}>
           <Flex h="100%" justify="flex-end" align="start">

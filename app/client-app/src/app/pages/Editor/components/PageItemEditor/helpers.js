@@ -4,8 +4,6 @@ import { FaRegQuestionCircle } from "react-icons/fa";
 import { convertShorthands } from "services/param-types";
 import { ParamControlRow } from "./ParamControls";
 import { getNestedChild } from "services/data-structures";
-import { useDerivedState } from "hooks/useDerivedState";
-import { useDeferredAction } from "hooks/useDeferredAction";
 
 // This is massive, maybe we can extract some bits
 // but it still needs to be done in a single reduce, ideally
@@ -114,31 +112,3 @@ export const buildControls = (_context, paramTypes, root = false) =>
     },
     { controls: [] }
   );
-
-export const useDeferredChangeHandler = (paramPath, init, onChange) => {
-  const [value, setValue] = useDerivedState(init);
-  const deferredHandleChange = useDeferredAction(onChange, 500);
-
-  const deferredHandleValueChange = (e) => {
-    //at time of writing,
-    //Number Inputs send string values;
-    //everything else sends SyntheticEvents
-    let inputValue;
-    switch (typeof e) {
-      case "string":
-        inputValue = e;
-        break;
-      case "object":
-        inputValue = e.target.value;
-        e.persist(); // TODO: this probably changes in React 17
-        break;
-      default:
-        throw new TypeError("expected a SyntheticEvent or a string");
-    }
-
-    setValue(inputValue); // update our local state
-    deferredHandleChange(paramPath, inputValue); // update remote state after delay
-  };
-
-  return [value, deferredHandleValueChange];
-};

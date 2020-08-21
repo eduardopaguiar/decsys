@@ -3,10 +3,31 @@ import ParamsEditor from "./ParamsEditor";
 
 const Component = ({ text }) => <div>{text}</div>;
 Component.paramTypes = {
-  colors: {
-    type: "array",
-    childType: "color",
+  numberMin: {
+    type: "number",
+    min: 7,
   },
+  numberMax: {
+    type: "number",
+    max: 20,
+  },
+  numberRange: {
+    type: "number",
+    min: 0,
+    max: 100,
+  },
+  numberOptions: ["number", null, 0, { min: 0, max: 10 }],
+  stringLength: {
+    type: "string",
+    limit: 5,
+  },
+  stringOptions: ["string", null, "", { limit: 10 }],
+  arrayLimit: {
+    type: "array",
+    childType: "string",
+    limit: 3,
+  },
+  arrayOptions: ["array", "Shorthand Array", "string", { limit: 4 }],
 };
 
 export default {
@@ -271,6 +292,19 @@ WithInfo.args = {
           type: "string",
           info: "a child",
         },
+      },
+    },
+  },
+};
+
+export const ColorPicker = Template.bind({});
+ColorPicker.args = {
+  component: {
+    ...Component.bind({}),
+    paramTypes: {
+      colors: {
+        type: "array",
+        childType: "color",
       },
     },
   },
