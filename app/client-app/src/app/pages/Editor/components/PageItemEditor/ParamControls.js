@@ -1,4 +1,10 @@
-import React, { useState, useEffect, createElement, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  createElement,
+  useMemo,
+  Fragment,
+} from "react";
 import { types } from "@decsys/param-types";
 import {
   Input,
@@ -20,11 +26,12 @@ import {
 } from "@chakra-ui/core";
 import { FaPlusCircle, FaTimes } from "react-icons/fa";
 import { convertShorthands } from "services/param-types";
-import { useDelayedChangeHandler, buildControls } from "./helpers";
+import { buildControls, useDeferredChangeHandler } from "./helpers";
 import { setNestedChild } from "services/data-structures";
+import { useDerivedState } from "hooks/useDerivedState";
 
-const StringControl = ({ paramType, value, onChange }) => {
-  const [text, delayedHandleChange] = useDelayedChangeHandler(
+const StringControl = ({ paramType, value = "", onChange }) => {
+  const [text, deferredHandleChange] = useDeferredChangeHandler(
     paramType.path,
     value,
     onChange
@@ -35,21 +42,24 @@ const StringControl = ({ paramType, value, onChange }) => {
       borderColor="gray.400"
       size="sm"
       type="text"
-      onChange={delayedHandleChange}
+      onChange={deferredHandleChange}
       value={text}
     />
   );
 };
 
-const BoolControl = ({ paramKey, value, paramType, onChange }) => {
+const BoolControl = ({ paramKey, value = false, paramType, onChange }) => {
+  const [localValue, setLocalValue] = useDerivedState(value);
+
   const handleCheckedChange = (e) => {
-    e.persist();
+    e.persist(); // TODO: remove in React 17
+    setLocalValue(e.target.checked);
     onChange(paramType.path, e.target.checked);
   };
 
   return (
     <Checkbox
-      isChecked={value}
+      isChecked={localValue}
       onChange={handleCheckedChange}
       p=".1em"
       borderColor="gray.400"
@@ -60,8 +70,10 @@ const BoolControl = ({ paramKey, value, paramType, onChange }) => {
 };
 
 const OneOfControl = ({ paramKey, value, paramType, onChange }) => {
-  const [localValue, setLocalValue] = useState(value); // we use local state so updates work without delay
-  useEffect(() => setLocalValue(value), [value]); // but still ensure update when new props come in
+  const [localValue, setLocalValue] = useDerivedState(
+    ({ value, fallback }) => value ?? fallback,
+    { value, fallback: paramType.oneOf[0] }
+  );
 
   const handleValueChange = (v) => {
     onChange(paramType.path, v);
@@ -86,8 +98,8 @@ const OneOfControl = ({ paramKey, value, paramType, onChange }) => {
   );
 };
 
-const NumberControl = ({ value, paramType, onChange }) => {
-  const [text, delayedHandleChange] = useDelayedChangeHandler(
+const NumberControl = ({ value = 0, paramType, onChange }) => {
+  const [text, deferredHandleChange] = useDeferredChangeHandler(
     paramType.path,
     value,
     onChange
@@ -97,8 +109,11 @@ const NumberControl = ({ value, paramType, onChange }) => {
     <NumberInput
       size="sm"
       step={1}
-      defaultValue={text}
-      onChange={delayedHandleChange}
+      value={text}
+      onChange={deferredHandleChange}
+      // blurring when deleting a focused field is problematic.
+      // so instead we manually clamp in our change handler, above.
+      clampValueOnBlur={false}
     >
       <NumberInputField borderColor="gray.400" />
       <NumberInputStepper borderColor="gray.400">
@@ -109,17 +124,16 @@ const NumberControl = ({ value, paramType, onChange }) => {
   );
 };
 
-const ArrayControl = ({ paramKey, value, paramType, onChange }) => {
+const ArrayControl = ({ value = [], paramType, onChange }) => {
   const childType = useMemo(() => convertShorthands(paramType.childType), [
     paramType.childType,
   ]);
 
-  const [items, setItems] = useState(value ?? []);
-  // TODO: update items on incoming value prop?
-
+  const [items, setItems] = useDerivedState(value);
   const [itemControls, setItemControls] = useState([]);
+
   useEffect(() => {
-    console.log(items);
+    // Rebuild our (and our children's) controls tree
     setItemControls(
       buildControls(
         {
@@ -142,14 +156,27 @@ const ArrayControl = ({ paramKey, value, paramType, onChange }) => {
           }))
       ).controls
     );
-  }, [items, onChange, paramType, childType]);
+  }, [items, onChange, paramType, childType, setItems]);
 
   const handleAddItem = () => {
+    const defaultValue = (() => {
+      switch (childType.type) {
+        case "group":
+          return {};
+        case "array":
+          return [];
+        default:
+          return childType.defaultValue;
+      }
+    })();
+
+    // set our own local state
+    const newItems = [...items, defaultValue];
+    setItems(newItems);
+
+    onChange(paramType.path, newItems);
+
     // TODO: API
-    setItems((items) => [
-      ...items,
-      childType.type === "group" ? {} : childType.defaultValue,
-    ]);
   };
 
   const handleDeleteItem = (i) => {
@@ -175,7 +202,7 @@ const ArrayControl = ({ paramKey, value, paramType, onChange }) => {
         </Button>
       </Flex>
       {items.map((_, i) => (
-        <>
+        <Fragment key={i}>
           <Flex h="100%" justify="flex-end" align="start">
             <IconButton
               variant="ghost"
@@ -186,7 +213,7 @@ const ArrayControl = ({ paramKey, value, paramType, onChange }) => {
             />
           </Flex>
           {itemControls[i]}
-        </>
+        </Fragment>
       ))}
     </>
   );

@@ -3,7 +3,7 @@ import ParamsEditor from "./ParamsEditor";
 
 const Component = ({ text }) => <div>{text}</div>;
 Component.paramTypes = {
-  "Section 1": {
+  Primitives: {
     type: "section",
     paramTypes: {
       param1: "string",
@@ -15,16 +15,17 @@ Component.paramTypes = {
         type: "array",
         childType: "number",
       },
+      bools: {
+        type: "array",
+        childType: "bool",
+      },
+      oneOfs: {
+        type: "array",
+        childType: ["oneOf", "Animal", "Horse", ["Horse", "Duck"]],
+      },
     },
   },
-  bools: {
-    type: "array",
-    childType: "bool",
-  },
-  oneOfs: {
-    type: "array",
-    childType: ["oneOf", "Animal", "Horse", ["Horse", "Duck"]],
-  },
+
   groups: {
     type: "array",
     childType: {
@@ -221,6 +222,80 @@ Groups.args = {
               "Bread",
               ["Bread", "Water"],
             ],
+          },
+        },
+      },
+    },
+  },
+};
+
+export const Arrays = Template.bind({});
+Arrays.args = {
+  component: {
+    ...Component.bind({}),
+    paramTypes: {
+      Primitives: {
+        type: "section",
+        paramTypes: {
+          param1: "string",
+          strings: {
+            type: "array",
+            childType: "string",
+          },
+          numbers: {
+            type: "array",
+            childType: "number",
+          },
+          bools: {
+            type: "array",
+            childType: "bool",
+          },
+          oneOfs: {
+            type: "array",
+            childType: ["oneOf", "Animal", "Horse", ["Horse", "Duck"]],
+          },
+        },
+      },
+
+      groups: {
+        type: "array",
+        childType: {
+          type: "group",
+          label: "Group",
+          paramTypes: {
+            param: "string",
+            subGroup: {
+              subParam: "number",
+            },
+          },
+        },
+      },
+      groupsWithArrays: {
+        type: "array",
+        path: "test",
+        childType: {
+          type: "group",
+
+          paramTypes: {
+            string: { type: "string", path: "yes" },
+            strings: {
+              type: "array",
+              path: "lol",
+              childType: { type: "string" },
+            },
+          },
+        },
+      },
+      arrays: {
+        type: "array",
+        childType: {
+          type: "array",
+          childType: {
+            type: "array",
+            childType: {
+              type: "array",
+              childType: "string",
+            },
           },
         },
       },

@@ -22,14 +22,14 @@ const EditorSections = ({ controls, ...sections }) => {
     <Tabs size="sm" w="100%" gridColumn="span 2">
       <TabList>
         {sectionKeys.map((key) => (
-          <Tab>{key}</Tab>
+          <Tab key={key}>{key}</Tab>
         ))}
         {!!controls.length && <Tab>Other</Tab>}
       </TabList>
 
       <TabPanels>
         {sectionKeys.map((key) => (
-          <TabPanel>
+          <TabPanel key={key}>
             <Stack>{sections[key].controls}</Stack>
           </TabPanel>
         ))}

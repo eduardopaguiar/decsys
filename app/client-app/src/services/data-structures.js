@@ -88,14 +88,28 @@ export const setNestedChild = (source, path, value) => {
   // drill down to the just before the child
   let parent = source;
   for (let i = 0; i < segments.length - 1; i++) {
-    const intKey = parseInt(segments[i]);
+    let intKey = parseInt(segments[i]);
     const key = !isNaN(intKey) ? intKey : segments[i];
 
     // create non-existent steps on the path
     const nextParent = parent[key];
     if (!nextParent) {
-      if (!isNaN(intKey)) parent[key] = [];
-      else parent[key] = {};
+      // accessing `i+1` always safe,
+      // because the loop stops before `length-1`
+      let intKey = parseInt(segments[i + 1]);
+
+      // check what type the next key is
+      // we assume integer keys are only used in arrays
+      // and all other key types are in objects
+      if (!isNaN(intKey)) {
+        // create an array
+        // AND fill it with undefined UP TO the index we intend to set
+        // so we don't have empty positions
+        parent[key] = Array(intKey).fill();
+      } else {
+        // create an object
+        parent[key] = {};
+      }
     }
 
     parent = parent[key];

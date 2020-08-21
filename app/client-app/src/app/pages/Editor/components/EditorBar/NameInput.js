@@ -10,13 +10,13 @@ import {
 } from "@chakra-ui/core";
 import { FaEdit } from "react-icons/fa";
 import { useEditorBarContext } from "../../contexts/EditorBar";
-import useFreshPropState from "hooks/useFreshPropState";
-import useDeferredAction from "hooks/useDeferredAction";
+import { useDerivedState } from "hooks/useDerivedState";
+import { useDeferredAction } from "hooks/useDeferredAction";
 
 const NameInput = ({ name }) => {
   const toast = useToast();
   const { saveName, nameState } = useEditorBarContext();
-  const [value, setValue] = useFreshPropState(name);
+  const [value, setValue] = useDerivedState(name);
 
   const deferredSave = useDeferredAction(saveName);
   const handleChange = ({ target: { value } }) => {

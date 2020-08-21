@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Text, Stack } from "@chakra-ui/core";
 import { convertShorthands } from "services/param-types";
 import { ParamControlRow } from "./ParamControls";
 import { getNestedChild } from "services/data-structures";
+import { useDerivedState } from "hooks/useDerivedState";
+import { useDeferredAction } from "hooks/useDeferredAction";
 
 export const buildControls = (_context, paramTypes, root = false) =>
   Object.keys(paramTypes).reduce(
@@ -72,7 +74,7 @@ export const buildControls = (_context, paramTypes, root = false) =>
         }
 
         controls = (
-          <Stack p={2} pt={0} bg="blackAlpha.200" borderRadius={10}>
+          <Stack key={key} p={2} pt={0} bg="blackAlpha.200" borderRadius={10}>
             <Text p={1} fontWeight="medium" borderBottom="thin solid">
               {pt.label || key}
             </Text>
@@ -99,13 +101,11 @@ export const buildControls = (_context, paramTypes, root = false) =>
     { controls: [] }
   );
 
-export const useDelayedChangeHandler = (paramPath, init, onChange) => {
-  const [timer, setTimer] = useState();
+export const useDeferredChangeHandler = (paramPath, init, onChange) => {
+  const [value, setValue] = useDerivedState(init);
+  const deferredHandleChange = useDeferredAction(onChange, 500);
 
-  const [value, setValue] = useState(init); // we use local state so updates work without delay
-  useEffect(() => setValue(init), [init]); // but still ensure update when new props come in
-
-  const delayedHandleValueChange = (e) => {
+  const deferredHandleValueChange = (e) => {
     //at time of writing,
     //Number Inputs send string values;
     //everything else sends SyntheticEvents
@@ -116,18 +116,15 @@ export const useDelayedChangeHandler = (paramPath, init, onChange) => {
         break;
       case "object":
         inputValue = e.target.value;
-        e.persist();
+        e.persist(); // TODO: this probably changes in React 17
         break;
       default:
         throw new TypeError("expected a SyntheticEvent or a string");
     }
 
     setValue(inputValue); // update our local state
-
-    //delay, then fire the onChange passed in to update remote state
-    clearTimeout(timer); // reset the delay timer every change
-    setTimer(setTimeout(() => onChange(paramPath, inputValue), 500));
+    deferredHandleChange(paramPath, inputValue); // update remote state after delay
   };
 
-  return [value, delayedHandleValueChange];
+  return [value, deferredHandleValueChange];
 };

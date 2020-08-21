@@ -2,13 +2,6 @@
 
 // TODO: use types enum
 
-const fallbackDefaults = {
-  string: "",
-  number: 0,
-  bool: false,
-  array: [],
-};
-
 export const convertArrayShorthands = (arr) => {
   if (!Array.isArray(arr)) return arr;
 
@@ -23,7 +16,7 @@ export const convertArrayShorthands = (arr) => {
   return {
     type,
     label,
-    defaultValue: defaultValue ?? fallbackDefaults[type],
+    defaultValue,
     oneOf,
   };
 };
