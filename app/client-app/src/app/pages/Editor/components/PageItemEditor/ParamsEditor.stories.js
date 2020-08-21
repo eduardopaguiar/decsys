@@ -3,29 +3,70 @@ import ParamsEditor from "./ParamsEditor";
 
 const Component = ({ text }) => <div>{text}</div>;
 Component.paramTypes = {
-  param1: "string",
-  param2: "number",
-  group1: {
-    type: "group",
-    label: "Fully Specified Group",
+  "Section 1": {
+    type: "section",
     paramTypes: {
-      groupParam1: "string",
-      groupParam2: "bool",
+      param1: "string",
+      strings: {
+        type: "array",
+        childType: "string",
+      },
+      numbers: {
+        type: "array",
+        childType: "number",
+      },
     },
   },
-  shorthandGroup: {
-    groupParam1: "number",
-    groupParam2: "string",
-    subGroup: {
+  bools: {
+    type: "array",
+    childType: "bool",
+  },
+  oneOfs: {
+    type: "array",
+    childType: ["oneOf", "Animal", "Horse", ["Horse", "Duck"]],
+  },
+  groups: {
+    type: "array",
+    childType: {
       type: "group",
-      paramTypes: { subParam1: ["oneOf", null, "Bread", ["Bread", "Water"]] },
+      label: "Group",
+      paramTypes: {
+        param: "string",
+        subGroup: {
+          subParam: "number",
+        },
+      },
     },
   },
+  groupsWithArrays: {
+    type: "array",
+    path: "test",
+    childType: {
+      type: "group",
 
-  //TODO:
-  // array: {
-  //   type: "array",
-  // },
+      paramTypes: {
+        string: { type: "string", path: "yes" },
+        strings: {
+          type: "array",
+          path: "lol",
+          childType: { type: "string" },
+        },
+      },
+    },
+  },
+  arrays: {
+    type: "array",
+    childType: {
+      type: "array",
+      childType: {
+        type: "array",
+        childType: {
+          type: "array",
+          childType: "string",
+        },
+      },
+    },
+  },
 };
 
 export default {
