@@ -3,69 +3,29 @@ import ParamsEditor from "./ParamsEditor";
 
 const Component = ({ text }) => <div>{text}</div>;
 Component.paramTypes = {
-  Primitives: {
-    type: "section",
+  withTooltip: {
+    type: "string",
+    info: "Some kind of text parameter",
+  },
+  groupTooltips: {
+    type: "group",
+    info: "The group",
     paramTypes: {
-      param1: "string",
-      strings: {
-        type: "array",
-        childType: "string",
+      child: {
+        type: "string",
+        info: "the child",
       },
-      numbers: {
-        type: "array",
-        childType: "number",
-      },
-      bools: {
-        type: "array",
-        childType: "bool",
-      },
-      oneOfs: {
-        type: "array",
-        childType: ["oneOf", "Animal", "Horse", ["Horse", "Duck"]],
+      noTooltip: {
+        type: "string",
       },
     },
   },
-
-  groups: {
+  arrayTooltips: {
     type: "array",
+    info: "the array",
     childType: {
-      type: "group",
-      label: "Group",
-      paramTypes: {
-        param: "string",
-        subGroup: {
-          subParam: "number",
-        },
-      },
-    },
-  },
-  groupsWithArrays: {
-    type: "array",
-    path: "test",
-    childType: {
-      type: "group",
-
-      paramTypes: {
-        string: { type: "string", path: "yes" },
-        strings: {
-          type: "array",
-          path: "lol",
-          childType: { type: "string" },
-        },
-      },
-    },
-  },
-  arrays: {
-    type: "array",
-    childType: {
-      type: "array",
-      childType: {
-        type: "array",
-        childType: {
-          type: "array",
-          childType: "string",
-        },
-      },
+      type: "string",
+      info: "a child",
     },
   },
 };

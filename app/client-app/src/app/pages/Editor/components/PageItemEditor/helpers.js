@@ -1,11 +1,14 @@
 import React from "react";
-import { Text, Stack } from "@chakra-ui/core";
+import { Text, Stack, Tooltip, Icon } from "@chakra-ui/core";
+import { FaRegQuestionCircle } from "react-icons/fa";
 import { convertShorthands } from "services/param-types";
 import { ParamControlRow } from "./ParamControls";
 import { getNestedChild } from "services/data-structures";
 import { useDerivedState } from "hooks/useDerivedState";
 import { useDeferredAction } from "hooks/useDeferredAction";
 
+// This is massive, maybe we can extract some bits
+// but it still needs to be done in a single reduce, ideally
 export const buildControls = (_context, paramTypes, root = false) =>
   Object.keys(paramTypes).reduce(
     (result, key) => {
@@ -74,9 +77,20 @@ export const buildControls = (_context, paramTypes, root = false) =>
         }
 
         controls = (
+          // TODO: this should probably be its own component, maybe in ParamControls
           <Stack key={key} p={2} pt={0} bg="blackAlpha.200" borderRadius={10}>
             <Text p={1} fontWeight="medium" borderBottom="thin solid">
               {pt.label || key}
+              <Tooltip
+                shouldWrapChildren
+                hasArrow
+                openDelay={200}
+                label={pt.info}
+              >
+                <sup>
+                  <Icon color="gray.500" m={1} as={FaRegQuestionCircle} />
+                </sup>
+              </Tooltip>
             </Text>
             {buildControls(_context, pt.paramTypes).controls},
           </Stack>

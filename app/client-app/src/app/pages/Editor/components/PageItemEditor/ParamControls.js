@@ -23,8 +23,10 @@ import {
   Button,
   Flex,
   IconButton,
+  Tooltip,
+  Icon,
 } from "@chakra-ui/core";
-import { FaPlusCircle, FaTimes } from "react-icons/fa";
+import { FaPlusCircle, FaTimes, FaRegQuestionCircle } from "react-icons/fa";
 import { convertShorthands } from "services/param-types";
 import { buildControls, useDeferredChangeHandler } from "./helpers";
 import { setNestedChild } from "services/data-structures";
@@ -256,16 +258,31 @@ export const ParamControlRow = ({
   handleParamChange,
 }) => {
   const isLabelledType = paramType.type !== "bool";
+
   return (
     <ControlsGrid>
-      <FormLabel
-        textAlign="right"
-        fontWeight="medium"
-        color={isLabelledType ? "inherit" : "gray.400"}
-        mb={0}
-      >
-        {isLabelledType ? paramType.label || paramKey : " ~ "}
-      </FormLabel>
+      <Flex justify="flex-end">
+        <FormLabel
+          textAlign="right"
+          fontWeight="medium"
+          color={isLabelledType ? "inherit" : "gray.400"}
+          m={0}
+        >
+          {isLabelledType ? paramType.label || paramKey : " ~ "}
+        </FormLabel>
+        {paramType.info && (
+          <Tooltip
+            shouldWrapChildren
+            hasArrow
+            openDelay={200}
+            label={paramType.info}
+          >
+            <sup>
+              <Icon color="gray.500" m={1} as={FaRegQuestionCircle} />
+            </sup>
+          </Tooltip>
+        )}
+      </Flex>
 
       <ParamControl
         value={value}
