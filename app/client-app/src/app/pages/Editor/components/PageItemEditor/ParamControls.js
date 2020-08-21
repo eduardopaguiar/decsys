@@ -52,14 +52,21 @@ const StringControl = ({ paramType, value = "", onChange }) => {
   };
 
   return (
-    <Input
-      borderColor="gray.400"
-      size="sm"
-      type="text"
-      onChange={handleChange}
-      value={text}
-      maxLength={paramType.limit}
-    />
+    <Stack direction="row">
+      <Input
+        borderColor="gray.400"
+        size="sm"
+        type="text"
+        onChange={handleChange}
+        value={text}
+        maxLength={paramType.limit}
+      />
+      {paramType.limit && (
+        <Flex minW="150px" color="gray.500" align="center">
+          ({text.length} of {paramType.limit})
+        </Flex>
+      )}
+    </Stack>
   );
 };
 
@@ -114,11 +121,15 @@ const OneOfControl = ({ paramKey, value, paramType, onChange }) => {
 };
 
 const NumberControl = ({ value = 0, paramType, onChange }) => {
+  const lower = paramType.min != null;
+  const upper = paramType.max != null;
+  const range = lower && upper;
+
   const [number, setNumber] = useDerivedState(value);
   const deferHandleChange = useDeferredAction((path, value) => {
     // clamp
-    if (paramType.min != null && value < paramType.min) value = paramType.min;
-    if (paramType.max != null && value > paramType.max) value = paramType.max;
+    if (lower && value < paramType.min) value = paramType.min;
+    if (upper && value > paramType.max) value = paramType.max;
     setNumber(value);
 
     onChange(path, value);
@@ -130,24 +141,36 @@ const NumberControl = ({ value = 0, paramType, onChange }) => {
   };
 
   return (
-    <NumberInput
-      size="sm"
-      step={1}
-      value={number}
-      onChange={handleChange}
-      // blurring when deleting a focused field is problematic.
-      // so instead we manually clamp in our change handler, above.
-      clampValueOnBlur={false}
-      min={paramType.min}
-      max={paramType.max}
-      maxW="150px"
-    >
-      <NumberInputField borderColor="gray.400" />
-      <NumberInputStepper borderColor="gray.400">
-        <NumberIncrementStepper />
-        <NumberDecrementStepper />
-      </NumberInputStepper>
-    </NumberInput>
+    <Stack direction="row">
+      <NumberInput
+        size="sm"
+        step={1}
+        value={number}
+        onChange={handleChange}
+        // blurring when deleting a focused field is problematic.
+        // so instead we manually clamp in our change handler, above.
+        clampValueOnBlur={false}
+        min={paramType.min}
+        max={paramType.max}
+        maxW="150px"
+      >
+        <NumberInputField borderColor="gray.400" />
+        <NumberInputStepper borderColor="gray.400">
+          <NumberIncrementStepper />
+          <NumberDecrementStepper />
+        </NumberInputStepper>
+      </NumberInput>
+      {(upper || lower) && (
+        <Flex color="gray.500" align="center">
+          (
+          {range
+            ? `between ${paramType.min} and ${paramType.max}`
+            : (upper && `up to ${paramType.max}`) ||
+              (lower && `${paramType.min} or higher`)}
+          )
+        </Flex>
+      )}
+    </Stack>
   );
 };
 
@@ -234,7 +257,7 @@ const ArrayControl = ({ value = [], paramType, onChange }) => {
           Add item
         </Button>
         {paramType.limit && (
-          <Flex align="center">
+          <Flex align="center" color="gray.500">
             ({items.length} of {paramType.limit})
           </Flex>
         )}

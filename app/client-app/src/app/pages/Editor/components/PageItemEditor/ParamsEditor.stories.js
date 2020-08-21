@@ -19,7 +19,7 @@ Component.paramTypes = {
   numberOptions: ["number", null, 0, { min: 0, max: 10 }],
   stringLength: {
     type: "string",
-    limit: 5,
+    limit: 5000,
   },
   stringOptions: ["string", null, "", { limit: 10 }],
   arrayLimit: {
